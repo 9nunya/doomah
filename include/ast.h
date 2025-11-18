@@ -22,6 +22,7 @@ typedef enum struct ast_type {
         ast_return,
         ast_call,
         ast_binop,
+        ast_unaryop,
         ast_array,
         ast_object,
         ast_member,
@@ -95,6 +96,9 @@ inline std::string ast_to_string(ast_type_t type) {
 
         case ast_type::ast_binop:
             return "binary operation";
+
+        case ast_type::ast_unaryop:
+            return "unary operation";
 
         case ast_type::ast_array:
             return "array expression";

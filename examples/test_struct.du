@@ -1,0 +1,11 @@
+# Test basic struct definition
+
+struct Person {
+    name: str,
+    age: int
+}
+
+print("Struct Person defined successfully")
+
+# Note: Full struct instantiation and validation not yet implemented
+# This is a foundation for future OOP features

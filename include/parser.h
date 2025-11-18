@@ -96,12 +96,45 @@ typedef struct parser {
         token_t start = eat();
         ast_node* condition = parse_expr();
         ast_node* body = parse_scope();
-        
+
         ast_node* ifst = new ast_node(ast_type::ast_while, start.pos);
         ifst->svalue = condition;
         ifst->value = body;
 
         return ifst;
+    }
+
+    ast_node* parse_struct() {
+        token_t start = eat(); // consume 'struct'
+        token_t name = expect(token_type::identifier);
+        expect(token_type::lcbrace);
+
+        ast_node* struct_node = new ast_node(ast_type::ast_struct_def, start.pos);
+        struct_node->symbol = name.value;
+
+        // Parse struct fields
+        while (!match(token_type::rcbrace)) {
+            token_t field_name = expect(token_type::identifier);
+            expect(token_type::colon);
+            token_t field_type = expect(token_type::identifier);
+
+            ast_node* field = new ast_node(ast_type::ast_member, field_name.pos);
+            field->symbol = field_name.value;
+            field->data_type = str_to_dtype(field_type.value);
+
+            struct_node->children.push_back(field);
+
+            if (!match(token_type::rcbrace)) {
+                if (match(token_type::comma)) {
+                    eat();
+                } else if (match(token_type::semi)) {
+                    eat();
+                }
+            }
+        }
+
+        expect(token_type::rcbrace);
+        return struct_node;
     }
 
     ast_node* parse_id() {
@@ -381,6 +414,16 @@ typedef struct parser {
         token_t at = peek();
         ast_node* val = new ast_node(ast_type_t::ast_noop, at.pos);
 
+        // Check for unary operators (prefix)
+        if (at.type == token_type::binaryop && at.value == "!") {
+            token_t op = eat();
+            ast_node* operand = parse_expr();
+            val = new ast_node(ast_type::ast_unaryop, op.pos);
+            val->symbol = "!";
+            val->value = operand;
+            return val;
+        }
+
         switch (at.type) {
             case token_type::identifier:
                 val = parse_id_binary();
@@ -428,6 +471,10 @@ typedef struct parser {
 
             case token_type::while_t:
                 val = parse_while();
+                break;
+
+            case token_type::struct_t:
+                val = parse_struct();
                 break;
 
             case token_type::true_t:

@@ -1,0 +1,38 @@
+# Test unary NOT operator
+
+print("Testing unary NOT operator")
+
+# Basic NOT operations
+a: boolean = true
+b: boolean = !a
+print("!true = ")
+print(b)
+
+c: boolean = false
+d: boolean = !c
+print("!false = ")
+print(d)
+
+# Double NOT
+e: boolean = !!true
+print("!!true = ")
+print(e)
+
+# NOT in conditions
+if !false {
+    print("!false is true - this should print")
+}
+
+if !true {
+    print("!true is false - this should NOT print")
+} else {
+    print("else clause works with NOT")
+}
+
+# Complex expressions
+ready: boolean = true
+notReady: boolean = !ready
+
+if !notReady {
+    print("Ready to go!")
+}

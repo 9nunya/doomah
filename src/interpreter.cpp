@@ -120,6 +120,9 @@ rt_value_t* interpreter::eval(ast_node* node, environment_t* env)
         case ast_type::ast_binop:
             return eval_binary(node, env);
 
+        case ast_type::ast_unaryop:
+            return eval_unary(node, env);
+
         case ast_type::ast_if:
             return eval_if(node, env);
 
@@ -128,6 +131,9 @@ rt_value_t* interpreter::eval(ast_node* node, environment_t* env)
 
         case ast_type::ast_bool:
             return new rt_value(static_cast<bool>(node->number));
+
+        case ast_type::ast_struct_def:
+            return eval_struct_def(node, env);
     }
     return new rt_value();
 }
@@ -436,6 +442,24 @@ rt_value_t* interpreter::eval_import(ast_node* node, environment_t* env)
     return new rt_value();
 }
 
+rt_value_t* interpreter::eval_unary(ast_node* node, environment_t* env)
+{
+    rt_value* operand = eval(node->value, env);
+    std::string op = node->symbol;
+
+    if (op == "!") {
+        if (operand->type == dtype::boolean) {
+            return new rt_value(!operand->boolean);
+        } else {
+            // Truthy/falsy evaluation
+            bool is_truthy = (operand->type != dtype::nil);
+            return new rt_value(!is_truthy);
+        }
+    }
+
+    return new rt_value();
+}
+
 rt_value_t* interpreter::eval_binary(ast_node* node, environment_t* env)
 {
     rt_value* left = eval(node->value, env);
@@ -539,4 +563,25 @@ rt_value_t* interpreter::eval_while(ast_node* node, environment_t* env)
     }
 
     return new rt_value();
+}
+rt_value_t* interpreter::eval_struct_def(ast_node* node, environment_t* env)
+{
+    // For now, structs are just stored as object schemas
+    // The struct definition itself doesn't create a value, it just registers a type
+    // We'll store it in the environment as an object containing the schema
+    
+    std::map<std::string, rt_value*> schema;
+    
+    for (auto field : node->children) {
+        // Store field types as metadata
+        rt_value* field_info = new rt_value();
+        field_info->type = field->data_type;
+        schema[field->symbol] = field_info;
+    }
+    
+    // Store the schema in the environment under the struct name
+    rt_value* struct_schema = new rt_value(schema);
+    env->assign(node->symbol, struct_schema);
+    
+    return new rt_value(); // Struct definition doesn't return a value
 }
