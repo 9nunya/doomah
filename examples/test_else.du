@@ -1,0 +1,15 @@
+# Test else clause
+x: int = 5
+
+if x == 5 {
+    print("x is 5")
+} else {
+    print("x is not 5")
+}
+
+y: int = 10
+if y == 5 {
+    print("y is 5")
+} else {
+    print("y is not 5")
+}

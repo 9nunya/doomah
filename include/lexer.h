@@ -23,6 +23,10 @@ namespace lexer {
 
         KEYWORDS["true"] = token_type::true_t;
         KEYWORDS["false"] = token_type::false_t;
+
+        KEYWORDS["struct"] = token_type::struct_t;
+        KEYWORDS["class"] = token_type::class_t;
+        KEYWORDS["new"] = token_type::new_t;
     }
     
     inline std::vector<token_t> tokenize(const std::string& str) {
@@ -127,6 +131,29 @@ namespace lexer {
                 tokens.push_back(token(token_type::binaryop, std::string(1, c), pos)); continue;
             }
 
+            if (c == '!') {
+                if (str.at(i + 1) == '=') {
+                    i++; pos.col++;
+                    tokens.push_back(token(token_type::binaryop, "!=", pos)); continue;
+                }
+
+                tokens.push_back(token(token_type::binaryop, "!", pos)); continue;
+            }
+
+            if (c == '&') {
+                if (str.at(i + 1) == '&') {
+                    i++; pos.col++;
+                    tokens.push_back(token(token_type::binaryop, "&&", pos)); continue;
+                }
+            }
+
+            if (c == '|') {
+                if (str.at(i + 1) == '|') {
+                    i++; pos.col++;
+                    tokens.push_back(token(token_type::binaryop, "||", pos)); continue;
+                }
+            }
+
             if (c == '(') {
                 tokens.push_back(token(token_type::lparen, "(", pos)); continue;
             }
@@ -163,7 +190,7 @@ namespace lexer {
                 tokens.push_back(token(token_type::dot, ":", pos)); continue;
             }
 
-            error("unexpected character", pos, str).spit();
+            parse_error("unexpected character", pos, str).spit();
         }
 
         tokens.push_back(token(token_type::eof, "\0", pos));

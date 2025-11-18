@@ -1,0 +1,32 @@
+# Test else clause
+x: int = 5
+
+if x == 5 {
+    print("x is 5")
+} else {
+    print("x is not 5")
+}
+
+# Test boolean literals
+isTrue: boolean = true
+isFalse: boolean = false
+
+print(isTrue)
+print(isFalse)
+
+# Test logical operators
+a: boolean = true
+b: boolean = false
+
+print(a && b)  # should print false
+print(a || b)  # should print true
+print(!a)       # should print false
+
+# Test != operator
+if x != 10 {
+    print("x is not 10")
+}
+
+if "hello" != "world" {
+    print("strings are different")
+}

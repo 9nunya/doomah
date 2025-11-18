@@ -2,6 +2,7 @@
 #define __ENV_H__
 
 #include <map>
+#include <memory>
 #include <utility>
 #include "runtime.h"
 

@@ -30,7 +30,9 @@ typedef enum struct ast_type {
         ast_import,
         ast_if,
         ast_while,
-        ast_bool
+        ast_bool,
+        ast_struct_def,
+        ast_class_def
 } ast_type_t;
 
 struct ast_node {
@@ -114,9 +116,15 @@ inline std::string ast_to_string(ast_type_t type) {
 
         case ast_type::ast_if:
             return "if statement";
-        
+
         case ast_type::ast_while:
             return "while statement";
+
+        case ast_type::ast_struct_def:
+            return "struct definition";
+
+        case ast_type::ast_class_def:
+            return "class definition";
     }
 }
 

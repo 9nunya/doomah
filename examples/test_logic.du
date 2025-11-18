@@ -1,0 +1,5 @@
+# Test logical operators
+a: boolean = true
+b: boolean = false
+c: boolean = a && b
+print(c)

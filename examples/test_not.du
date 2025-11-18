@@ -1,0 +1,4 @@
+# Test NOT operator
+a: boolean = true
+b: boolean = !a
+print(b)

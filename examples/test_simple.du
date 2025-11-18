@@ -1,0 +1,3 @@
+# Test boolean literals
+x: boolean = true
+print(x)

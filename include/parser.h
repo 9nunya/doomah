@@ -12,7 +12,7 @@
 #include <error.h>
 #include <string>
 #include <vector>
-#include <format>
+#include <memory>
 
 template<typename ... Args>
 inline std::string string_format( const std::string& format, Args ... args )
@@ -27,30 +27,38 @@ inline std::string string_format( const std::string& format, Args ... args )
 
 typedef struct parser {
     std::vector<token_t> tokens;
+    size_t current_index;
     token_t last;
 
     std::string source;
 
-    parser(std::string src) : source(src) {
+    parser(std::string src) : source(src), current_index(0) {
         tokens = lexer::tokenize(source);
-        last = tokens.front();
+        if (!tokens.empty()) {
+            last = tokens[0];
+        }
     };
 
     token_t eat() {
-        token_t l = tokens.front();
-        tokens.erase(tokens.begin());
-        return l;;
+        if (current_index >= tokens.size()) {
+            return tokens.back(); // Return EOF if at end
+        }
+        token_t l = tokens[current_index];
+        current_index++;
+        return l;
     }
 
     token_t expect(token_type_t type) {
         token_t next = eat();
-        if (next.type != type) error(string_format("expected %s at %d:%d, got %s", token_to_str(type).c_str(), next.pos.ln, next.pos.col, token_to_str(next.type).c_str()), next.pos, source).spit();
+        if (next.type != type) parse_error(string_format("expected %s at %d:%d, got %s", token_to_str(type).c_str(), next.pos.ln, next.pos.col, token_to_str(next.type).c_str()), next.pos, source).spit();
         return next;
     }
 
     token_t peek() {
-        token_t l = tokens.front();
-        return l;
+        if (current_index >= tokens.size()) {
+            return tokens.back(); // Return EOF if at end
+        }
+        return tokens[current_index];
     }
 
     bool match(token_type_t type) {
@@ -69,10 +77,17 @@ typedef struct parser {
         token_t start = eat();
         ast_node* condition = parse_expr();
         ast_node* body = parse_scope();
-        
+
         ast_node* ifst = new ast_node(ast_type::ast_if, start.pos);
         ifst->svalue = condition;
         ifst->value = body;
+
+        // Check for else clause
+        if (match(token_type::else_t)) {
+            eat(); // consume 'else'
+            ast_node* else_body = parse_scope();
+            ifst->children.push_back(else_body);
+        }
 
         return ifst;
     }
@@ -166,10 +181,10 @@ typedef struct parser {
         ast_node* id = parse_expr();
 
         if (path->type != ast_type::ast_string_expr)
-            error("invalid import argument", path->pos, source).spit();
+            parse_error("invalid import argument", path->pos, source).spit();
 
         if (id->type != ast_type::ast_identifier)
-            error("invalid import argument", id->pos, source).spit();
+            parse_error("invalid import argument", id->pos, source).spit();
 
         ast_node* inode = new ast_node(ast_type::ast_import, path->pos);
         inode->value = path;
@@ -261,6 +276,26 @@ typedef struct parser {
         }
 
         //print_node(node);
+
+        return node;
+    }
+
+    ast_node* parse_bool_binary() {
+        token_t bool_tok = eat();
+        ast_node* node = new ast_node(ast_type::ast_bool, bool_tok.pos);
+        node->number = (bool_tok.type == token_type::true_t) ? 1 : 0;
+
+        if (match(token_type::binaryop)) {
+            token_t op = eat();
+            ast_node* left = new ast_node(ast_type::ast_bool, bool_tok.pos);
+            left->number = node->number;
+            ast_node* right = parse_expr();
+
+            node->type = ast_type::ast_binop;
+            node->value = left;
+            node->svalue = right;
+            node->symbol = op.value;
+        }
 
         return node;
     }
@@ -395,7 +430,12 @@ typedef struct parser {
                 val = parse_while();
                 break;
 
-            default: error(string_format("unexpected %s at %d:%d", token_to_str(at.type).c_str(), at.pos.ln, at.pos.col), at.pos, source).spit();
+            case token_type::true_t:
+            case token_type::false_t:
+                val = parse_bool_binary();
+                break;
+
+            default: parse_error(string_format("unexpected %s at %d:%d", token_to_str(at.type).c_str(), at.pos.ln, at.pos.col), at.pos, source).spit();
         }
 
         return val;

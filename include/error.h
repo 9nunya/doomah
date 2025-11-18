@@ -24,14 +24,14 @@ inline std::vector<std::string> split(std::string s, std::string delimiter) {
     return res;
 }
 
-typedef struct error {
+typedef struct parse_error {
     std::string what;
     position_t position;
     std::string source;
     bool has_pos;
 
-    error(std::string w) : what(w), has_pos(false) {}
-    error(std::string w, position_t pos, std::string src) : what(w), has_pos(true), source(src), position(pos) {};
+    parse_error(std::string w) : what(w), has_pos(false) {}
+    parse_error(std::string w, position_t pos, std::string src) : what(w), has_pos(true), source(src), position(pos) {};
 
     inline void spit() {
         if (has_pos) {
@@ -43,11 +43,11 @@ typedef struct error {
 
         exit(EXIT_FAILURE);
     }
-} error_t;
+} parse_error_t;
 
 namespace error_util {
     inline void spit(std::string what) {
-        error(what).spit();
+        parse_error(what).spit();
     }
 }
 

@@ -6,11 +6,12 @@
 typedef enum struct token_type {
     ret,
     identifier, str_literal, num_literal,
-    binaryop, equals, 
+    binaryop, equals,
     semi, eof, colon, lparen, rparen, lcbrace, rcbrace, lbrace, rbrace, comma, f_assign, dot,
     import, as,
     if_t, while_t, else_t,
-    true_t, false_t
+    true_t, false_t,
+    struct_t, class_t, new_t
 } token_type_t;
 
 typedef struct token {
@@ -100,6 +101,15 @@ inline std::string token_to_str(token_type_t type) {
 
         case token_type::false_t:
             return "false";
+
+        case token_type::struct_t:
+            return "struct";
+
+        case token_type::class_t:
+            return "class";
+
+        case token_type::new_t:
+            return "new";
     }
 }
 
