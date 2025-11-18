@@ -1,0 +1,188 @@
+# Comprehensive Demo of Doomah Language Features
+# This file demonstrates all major features of the Doomah programming language
+
+print("=== Doomah Language Demo ===")
+print("")
+
+# 1. Variables and Types
+print("1. Variables and Types")
+name: str = "Doomah"
+version: int = 2
+isStable: boolean = true
+
+print("Language: ")
+print(name)
+print("Version: ")
+print(version)
+print("Stable: ")
+print(isStable)
+print("")
+
+# 2. Boolean Literals
+print("2. Boolean Literals")
+truthValue: boolean = true
+falseValue: boolean = false
+print("True is: ")
+print(truthValue)
+print("False is: ")
+print(falseValue)
+print("")
+
+# 3. If-Else Statements
+print("3. If-Else Control Flow")
+temperature: int = 75
+
+if temperature > 80 {
+    print("It's hot!")
+} else {
+    print("It's comfortable")
+}
+print("")
+
+# 4. Logical Operators
+print("4. Logical Operators")
+
+# AND operator
+hasLicense: boolean = true
+hasInsurance: boolean = true
+
+if hasLicense && hasInsurance {
+    print("You can drive legally")
+}
+
+# OR operator
+isWeekend: boolean = false
+isHoliday: boolean = true
+
+if isWeekend || isHoliday {
+    print("No work today!")
+}
+
+# NOT EQUAL operator
+statusCode: int = 200
+if statusCode != 404 {
+    print("Page exists")
+}
+print("")
+
+# 5. Functions
+print("5. Functions")
+
+add: func = => (a: int, b: int): int {
+    return a + b
+}
+
+result: int = add(10, 20)
+print("10 + 20 = ")
+print(result)
+print("")
+
+# 6. Arrays
+print("6. Arrays")
+numbers: array = [1, 2, 3, 4, 5]
+print("Array: ")
+print(numbers)
+print("")
+
+# 7. Objects
+print("7. Objects")
+person: object = {
+    name: "Alice",
+    age: 30,
+    city: "San Francisco"
+}
+
+print("Person name: ")
+print(person.name)
+print("Person age: ")
+print(person.age)
+print("")
+
+# 8. While Loops
+print("8. While Loops")
+counter: int = 0
+print("Counting to 3:")
+while counter < 3 {
+    print(counter)
+    counter = counter + 1
+}
+print("")
+
+# 9. Nested Control Flow
+print("9. Nested Control Flow")
+score: int = 85
+
+if score >= 90 {
+    print("Grade: A")
+} else {
+    if score >= 80 {
+        print("Grade: B")
+    } else {
+        if score >= 70 {
+            print("Grade: C")
+        } else {
+            print("Grade: D or F")
+        }
+    }
+}
+print("")
+
+# 10. String Concatenation
+print("10. String Operations")
+firstName: str = "John"
+lastName: str = "Doe"
+fullName: str = firstName + " " + lastName
+print("Full name: ")
+print(fullName)
+print("")
+
+# 11. Comparison Operators
+print("11. Comparison Operators")
+x: int = 10
+y: int = 20
+
+if x < y {
+    print("x is less than y")
+}
+
+if y > x {
+    print("y is greater than x")
+}
+
+if x == 10 {
+    print("x equals 10")
+}
+
+if x != y {
+    print("x and y are different")
+}
+print("")
+
+# 12. Complex Boolean Logic
+print("12. Complex Boolean Logic")
+age: int = 25
+hasID: boolean = true
+isVIP: boolean = false
+
+if age >= 21 && hasID {
+    print("Entry allowed")
+}
+
+if isVIP || age >= 21 {
+    print("Can access VIP area or bar")
+}
+print("")
+
+# 13. Higher-order Functions
+print("13. Higher-order Functions")
+
+multiply: func = => (a: int, b: int): int {
+    return a * b
+}
+
+product: int = multiply(5, 6)
+print("5 * 6 = ")
+print(product)
+print("")
+
+print("=== Demo Complete ===")
