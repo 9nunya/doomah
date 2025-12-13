@@ -11,7 +11,7 @@ typedef enum struct token_type {
     import, as,
     if_t, while_t, else_t,
     true_t, false_t,
-    struct_t, class_t, new_t
+    struct_t, class_t, new_t, extends_t, constructor_t
 } token_type_t;
 
 typedef struct token {
@@ -110,7 +110,14 @@ inline std::string token_to_str(token_type_t type) {
 
         case token_type::new_t:
             return "new";
+
+        case token_type::extends_t:
+            return "extends";
+
+        case token_type::constructor_t:
+            return "constructor";
     }
+    return "unknown";
 }
 
 inline void print_tok(token_t tok) {

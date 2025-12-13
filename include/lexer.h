@@ -27,6 +27,8 @@ namespace lexer {
         KEYWORDS["struct"] = token_type::struct_t;
         KEYWORDS["class"] = token_type::class_t;
         KEYWORDS["new"] = token_type::new_t;
+        KEYWORDS["extends"] = token_type::extends_t;
+        KEYWORDS["constructor"] = token_type::constructor_t;
     }
     
     inline std::vector<token_t> tokenize(const std::string& str) {

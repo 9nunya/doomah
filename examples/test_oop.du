@@ -1,0 +1,65 @@
+# Comprehensive OOP Test with Structs and Classes
+
+print("=== Testing Structs and Classes ===")
+print("")
+
+# 1. Simple Struct Definition and Instantiation
+print("1. Simple Struct:")
+struct Point {
+    x: int,
+    y: int
+}
+
+p1 = Point(10, 20)
+print("Created Point instance:")
+print(p1)
+print("")
+
+# 2. Struct with different types
+struct Person {
+    name: str,
+    age: int,
+    active: boolean
+}
+
+person1 = Person("Alice", 30, true)
+print("2. Person struct:")
+print(person1)
+print("")
+
+# 3. Simple Class Definition
+print("3. Simple Class:")
+class Animal {
+    name: str,
+    age: int
+}
+
+dog = Animal("Max", 5)
+print("Created Animal instance:")
+print(dog)
+print("")
+
+# 4. Nested structs
+struct Address {
+    street: str,
+    city: str
+}
+
+addr1 = Address("123 Main St", "Boston")
+print("4. Address struct:")
+print(addr1)
+print("")
+
+# 5. Multiple instances
+point2 = Point(100, 200)
+point3 = Point(50, 75)
+print("5. Multiple Point instances:")
+print("Point 1:")
+print(p1)
+print("Point 2:")
+print(point2)
+print("Point 3:")
+print(point3)
+print("")
+
+print("=== All OOP Tests Complete ===")

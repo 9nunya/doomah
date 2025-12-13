@@ -33,6 +33,9 @@ typedef struct interpreter {
     rt_value_t* eval_if(ast_node* node, environment_t* env);
     rt_value_t* eval_while(ast_node* node, environment_t* env);
     rt_value_t* eval_struct_def(ast_node* node, environment_t* env);
+    rt_value_t* eval_class_def(ast_node* node, environment_t* env);
+    rt_value_t* eval_struct_instantiate(rt_value* struct_type, ast_node* node, environment_t* env);
+    rt_value_t* eval_class_instantiate(rt_value* class_type, ast_node* node, environment_t* env);
     rt_value_t* eval_scope_samenv(ast_node* node, environment_t* env);
 } interpreter_t;
 

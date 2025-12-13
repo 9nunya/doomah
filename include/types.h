@@ -11,6 +11,10 @@ typedef enum struct dtype {
     nil,
     boolean,
     cfunction,
+    struct_type,
+    class_type,
+    instance,
+    module
 } dtype_t;
 
 inline dtype_t str_to_dtype(std::string dt) {
@@ -42,6 +46,18 @@ inline dtype_t str_to_dtype(std::string dt) {
         return dtype::boolean;
     }
 
+    if (dt == "struct") {
+        return dtype::struct_type;
+    }
+
+    if (dt == "class") {
+        return dtype::class_type;
+    }
+
+    if (dt == "module") {
+        return dtype::module;
+    }
+
     return dtype::nil;
 }
 
@@ -70,7 +86,20 @@ inline std::string dtype_to_str(dtype_t dt) {
 
         case dtype::boolean:
             return "bool";
+
+        case dtype::struct_type:
+            return "struct";
+
+        case dtype::class_type:
+            return "class";
+
+        case dtype::instance:
+            return "instance";
+
+        case dtype::module:
+            return "module";
     }
+    return "unknown";
 }
 
 #endif // TYPES_H_

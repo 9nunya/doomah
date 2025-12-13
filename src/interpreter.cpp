@@ -134,6 +134,9 @@ rt_value_t* interpreter::eval(ast_node* node, environment_t* env)
 
         case ast_type::ast_struct_def:
             return eval_struct_def(node, env);
+
+        case ast_type::ast_class_def:
+            return eval_class_def(node, env);
     }
     return new rt_value();
 }
@@ -141,7 +144,21 @@ rt_value_t* interpreter::eval(ast_node* node, environment_t* env)
 rt_value_t* interpreter::eval_assign(ast_node* node, environment_t* env)
 {
     rt_value* value = eval(node->value, env);
-    if (value->type != node->data_type) parse_error(string_format("expected type %s for %s, got %s", dtype_to_str(node->data_type).c_str(), node->symbol.c_str(), dtype_to_str(value->type).c_str()), node->pos, source).spit();
+
+    // Skip type checking if:
+    // 1. No type annotation (data_type is nil)
+    // 2. Value is an instance (struct/class instance)
+    // 3. Value type matches expected type
+    if (node->data_type != dtype::nil &&
+        value->type != dtype::instance &&
+        value->type != node->data_type) {
+        parse_error(string_format("expected type %s for %s, got %s",
+            dtype_to_str(node->data_type).c_str(),
+            node->symbol.c_str(),
+            dtype_to_str(value->type).c_str()),
+            node->pos, source).spit();
+    }
+
     env->assign(node->symbol, value);
     return new rt_value();
 }
@@ -207,7 +224,17 @@ rt_value_t* interpreter::eval_call(ast_node* node, environment_t* env)
 {
     rt_value_t* scope = env->get_var(node->symbol);
 
-    if (scope && scope->type == dtype::func || scope->type == dtype::cfunction) {
+    // Handle struct instantiation
+    if (scope && scope->type == dtype::struct_type) {
+        return eval_struct_instantiate(scope, node, env);
+    }
+
+    // Handle class instantiation
+    if (scope && scope->type == dtype::class_type) {
+        return eval_class_instantiate(scope, node, env);
+    }
+
+    if (scope && (scope->type == dtype::func || scope->type == dtype::cfunction)) {
         environment_t* cenv = new environment(env);
         std::vector<rt_value*> args;
 
@@ -566,22 +593,109 @@ rt_value_t* interpreter::eval_while(ast_node* node, environment_t* env)
 }
 rt_value_t* interpreter::eval_struct_def(ast_node* node, environment_t* env)
 {
-    // For now, structs are just stored as object schemas
-    // The struct definition itself doesn't create a value, it just registers a type
-    // We'll store it in the environment as an object containing the schema
-    
-    std::map<std::string, rt_value*> schema;
-    
-    for (auto field : node->children) {
-        // Store field types as metadata
-        rt_value* field_info = new rt_value();
-        field_info->type = field->data_type;
-        schema[field->symbol] = field_info;
-    }
-    
-    // Store the schema in the environment under the struct name
-    rt_value* struct_schema = new rt_value(schema);
-    env->assign(node->symbol, struct_schema);
-    
+    // Create a struct type that can be used as a constructor
+    rt_value* struct_type = new rt_value();
+    struct_type->type = dtype::struct_type;
+    struct_type->type_name = node->symbol;
+    struct_type->type_def = node;  // Store the definition
+
+    // Store the struct type in the environment
+    env->assign(node->symbol, struct_type);
+
     return new rt_value(); // Struct definition doesn't return a value
+}
+
+rt_value_t* interpreter::eval_class_def(ast_node* node, environment_t* env)
+{
+    // Create a class type that can be used as a constructor
+    rt_value* class_type = new rt_value();
+    class_type->type = dtype::class_type;
+    class_type->type_name = node->symbol;
+    class_type->type_def = node;  // Store the definition
+
+    // Store the class type in the environment
+    env->assign(node->symbol, class_type);
+
+    return new rt_value(); // Class definition doesn't return a value
+}
+
+rt_value_t* interpreter::eval_struct_instantiate(rt_value* struct_type, ast_node* node, environment_t* env)
+{
+    // Get the struct definition
+    ast_node* def = struct_type->type_def;
+
+    // Create instance fields from the arguments
+    std::map<std::string, rt_value*> fields;
+
+    // Match arguments to fields by position
+    for (size_t i = 0; i < def->children.size() && i < node->value->children.size(); i++) {
+        ast_node* field_def = def->children[i];
+        ast_node* arg = node->value->children[i];
+
+        rt_value* field_value = eval(arg, env);
+
+        // Type checking
+        if (field_value->type != field_def->data_type && field_def->data_type != dtype::nil) {
+            parse_error(string_format("expected type %s for field %s, got %s",
+                dtype_to_str(field_def->data_type).c_str(),
+                field_def->symbol.c_str(),
+                dtype_to_str(field_value->type).c_str()),
+                node->pos, source).spit();
+        }
+
+        fields[field_def->symbol] = field_value;
+    }
+
+    // Create the struct instance
+    rt_value* instance = new rt_value(struct_type->type_name, fields, def);
+
+    return instance;
+}
+
+rt_value_t* interpreter::eval_class_instantiate(rt_value* class_type, ast_node* node, environment_t* env)
+{
+    // Get the class definition
+    ast_node* def = class_type->type_def;
+
+    // Separate fields and methods from the class definition
+    std::map<std::string, rt_value*> fields;
+    std::map<std::string, rt_value*> methods;
+
+    // Parse the class definition to get fields and methods
+    for (auto member : def->children) {
+        if (member->type == ast_type::ast_function) {
+            // It's a method
+            rt_value* method = new rt_value(member->value, member);
+            methods[member->symbol] = method;
+        } else if (member->type == ast_type::ast_member) {
+            // It's a field - initialize to nil, will be set by constructor args
+            fields[member->symbol] = new rt_value();  // nil default
+        }
+    }
+
+    // Set field values from constructor arguments
+    size_t arg_index = 0;
+    for (auto member : def->children) {
+        if (member->type == ast_type::ast_member && arg_index < node->value->children.size()) {
+            ast_node* arg = node->value->children[arg_index];
+            rt_value* field_value = eval(arg, env);
+
+            // Type checking
+            if (field_value->type != member->data_type && member->data_type != dtype::nil) {
+                parse_error(string_format("expected type %s for field %s, got %s",
+                    dtype_to_str(member->data_type).c_str(),
+                    member->symbol.c_str(),
+                    dtype_to_str(field_value->type).c_str()),
+                    node->pos, source).spit();
+            }
+
+            fields[member->symbol] = field_value;
+            arg_index++;
+        }
+    }
+
+    // Create the class instance
+    rt_value* instance = new rt_value(class_type->type_name, fields, methods, def);
+
+    return instance;
 }

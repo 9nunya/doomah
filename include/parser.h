@@ -137,6 +137,49 @@ typedef struct parser {
         return struct_node;
     }
 
+    ast_node* parse_class() {
+        token_t start = eat(); // consume 'class'
+        token_t name = expect(token_type::identifier);
+        expect(token_type::lcbrace);
+
+        ast_node* class_node = new ast_node(ast_type::ast_class_def, start.pos);
+        class_node->symbol = name.value;
+
+        // Parse class members (fields and methods)
+        while (!match(token_type::rcbrace)) {
+            token_t member_name = expect(token_type::identifier);
+            expect(token_type::colon);
+
+            // Check if it's a method (function type) or field
+            if (match(token_type::f_assign)) {
+                // It's a method
+                ast_node* method = parse_fn();
+                method->symbol = member_name.value;
+                class_node->children.push_back(method);
+            } else {
+                // It's a field
+                token_t field_type = expect(token_type::identifier);
+
+                ast_node* field = new ast_node(ast_type::ast_member, member_name.pos);
+                field->symbol = member_name.value;
+                field->data_type = str_to_dtype(field_type.value);
+
+                class_node->children.push_back(field);
+            }
+
+            if (!match(token_type::rcbrace)) {
+                if (match(token_type::comma)) {
+                    eat();
+                } else if (match(token_type::semi)) {
+                    eat();
+                }
+            }
+        }
+
+        expect(token_type::rcbrace);
+        return class_node;
+    }
+
     ast_node* parse_id() {
         token_t id = eat();
         if (match(token_type_t::equals)) {
@@ -475,6 +518,10 @@ typedef struct parser {
 
             case token_type::struct_t:
                 val = parse_struct();
+                break;
+
+            case token_type::class_t:
+                val = parse_class();
                 break;
 
             case token_type::true_t:

@@ -1,0 +1,16 @@
+# Very simple struct test
+
+print("Defining struct...")
+
+struct Point {
+    x: int,
+    y: int
+}
+
+print("Struct defined")
+print("Creating instance...")
+
+p1 = Point(10, 20)
+
+print("Instance created!")
+print(p1)

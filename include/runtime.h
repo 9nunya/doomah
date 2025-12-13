@@ -24,6 +24,11 @@ typedef struct rt_value {
     std::function<rt_value*(std::vector<rt_value*>, void*)> cfunc;
     bool boolean;
 
+    // OOP support
+    std::string type_name;       // name of struct/class
+    ast_node* type_def;          // pointer to struct/class definition
+    std::map<std::string, rt_value*> methods;  // class methods
+
     dtype_t type;
 
     rt_value(float num) : num(num), type(dtype::integer) {};
@@ -34,6 +39,14 @@ typedef struct rt_value {
     rt_value(std::function<rt_value*(std::vector<rt_value*>, void*)> cf) : cfunc(cf), proto(CFUNC_PROTO), type(dtype::cfunction) {};
     rt_value(bool b) : boolean(b), type(dtype::boolean) {};
     rt_value() : type(dtype::nil) {};
+
+    // Struct instance constructor
+    rt_value(std::string type_name, std::map<std::string, rt_value*> fields, ast_node* def)
+        : type_name(type_name), children(fields), type_def(def), type(dtype::instance) {};
+
+    // Class instance constructor
+    rt_value(std::string type_name, std::map<std::string, rt_value*> fields, std::map<std::string, rt_value*> methods, ast_node* def)
+        : type_name(type_name), children(fields), methods(methods), type_def(def), type(dtype::instance) {};
 
     std::string ts() {
         switch (type) {
@@ -86,10 +99,24 @@ typedef struct rt_value {
             case dtype::cfunction:
                 return "<c function>";
 
-            case dtype::boolean:
+            case dtype::boolean: {
                 std::string ts[2] = {"false", "true"};
                 return ts[static_cast<int>(this->boolean)];
+            }
+
+            case dtype::struct_type:
+                return "<struct " + type_name + ">";
+
+            case dtype::class_type:
+                return "<class " + type_name + ">";
+
+            case dtype::instance:
+                return "<" + type_name + " instance>";
+
+            case dtype::module:
+                return "<module " + type_name + ">";
         }
+        return "unknown";
     }
 
     void out() {
@@ -146,6 +173,22 @@ typedef struct rt_value {
             case dtype::cfunction:
                 printf("<c function>");
                 break;
+
+            case dtype::struct_type:
+                printf("<struct %s>", type_name.c_str());
+                break;
+
+            case dtype::class_type:
+                printf("<class %s>", type_name.c_str());
+                break;
+
+            case dtype::instance:
+                printf("<%s instance>", type_name.c_str());
+                break;
+
+            case dtype::module:
+                printf("<module %s>", type_name.c_str());
+                break;
         }
     }
 
@@ -200,7 +243,25 @@ typedef struct rt_value {
 
             case dtype::cfunction:
                 return "<c function>";
+
+            case dtype::struct_type:
+                return "<struct " + type_name + ">";
+
+            case dtype::class_type:
+                return "<class " + type_name + ">";
+
+            case dtype::instance:
+                return "<" + type_name + " instance>";
+
+            case dtype::module:
+                return "<module " + type_name + ">";
+
+            case dtype::boolean: {
+                std::string ts[2] = {"false", "true"};
+                return ts[static_cast<int>(this->boolean)];
+            }
         }
+        return "unknown";
     }
 } rt_value_t;
 
